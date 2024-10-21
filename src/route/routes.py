@@ -36,7 +36,7 @@ def delete_task(task_id):
         # Verifica se o ID da tarefa está dentro do intervalo válido
         if 0 <= task_id < len(tarefas):
             # Remove a tarefa selecionada
-            tarefas.pop(task_id)
+            tarefas.remove(task_id)
 
             # Escreve as tarefas atualizadas de volta ao arquivo
             with open(FILENAME, 'w') as file:

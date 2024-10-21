@@ -8,6 +8,7 @@ FILENAME = os.path.join(DIRECTORY, 'my_task.txt')  # Caminho completo do arquivo
 
 def my_list(add):
     try:
+      
         # Verifica se o diretório existe, se não, cria
         if not os.path.exists(DIRECTORY):
             os.makedirs(DIRECTORY)
@@ -15,6 +16,9 @@ def my_list(add):
         # Primeiro, adicione a nova tarefa ao arquivo
         with open(FILENAME, 'a') as file:
             file.write(add + '\n')
+        
+        if add == ' ':
+            return display()
 
         # Em seguida, retorne todas as tarefas
         return display()  # Chame a função display para retornar a lista completa
