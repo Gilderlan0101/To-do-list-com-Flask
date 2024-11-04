@@ -1,50 +1,45 @@
-import os
+import requests
 from flask import flash
 
-# Configurações do diretório e arquivo
-BASE_DIR = os.path.expanduser("~")  # Diretório home do usuário
-DIRECTORY = os.path.join(BASE_DIR, "my_tasks")  # Cria um diretório chamado "my_tasks"
-FILENAME = os.path.join(DIRECTORY, 'my_task.txt')
-
-def path_univesal():
-   'Função que cria um caminho completo'
-   FILENAME = os.path.join(DIRECTORY, 'my_task.txt')
-
-   return FILENAME
+# URL base da API
+API_BASE_URL = "http://127.0.0.1:5000/task"
+import requests
+from flask import flash
 
 
 def my_list(add):
+    """
+    Envia uma nova tarefa para a API.
+    """
+    if not add.strip():  # Verifica se a tarefa não está vazia
+        flash("A tarefa não pode ser vazia.", "error")
+        return display()  # Retorna a lista atualizada para exibição
+
     try:
-        # Verifica se o diretório existe, se não, cria
-        if not os.path.exists(DIRECTORY):
-            os.makedirs(DIRECTORY)
-
-        # Se a tarefa for vazia ou composta apenas por espaços, não a adiciona
-        if not add.strip():
-            flash("A tarefa não pode ser vazia.", "error")
-            return display()
-
-        # Adiciona a nova tarefa ao arquivo
-        with open(FILENAME, 'a') as file:
-            file.write(add.strip() + '\n')  # Use strip() para evitar espaços em branco
-
-    except Exception as e:
-        print(f"Erro: {e}")
+        # Envia a tarefa com o nome correto do campo 'task'
+        data = {'task': add.strip()}
+        response = requests.post(API_BASE_URL, json=data)
+        print(f"Enviando dados: {data}")  # Log dos dados enviados
+        response.raise_for_status()
+        flash("Tarefa adicionada com sucesso!", "success")
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao adicionar a tarefa: {e}")
         flash("Erro ao adicionar a tarefa.", "error")
 
-def display():
-    tarefas = []
-    try:
-        with open(FILENAME, "r") as arquivo:
-            linhas = arquivo.readlines()
-            for linha in linhas:
-                tarefas.insert(0, linha.strip()) 
+    return display()  # Atualiza a lista de tarefas
 
-    except FileNotFoundError:
-        print(f"Arquivo não encontrado: {FILENAME}. Um novo arquivo será criado na próxima execução.")
-        return []
-    except Exception as e:
-        print(f"Erro: {e}")
-        return []
+def display():
+    """
+    Obtém a lista de tarefas da API.
+    """
+    try:
+        # Faz uma requisição GET para obter todas as tarefas
+        response = requests.get(API_BASE_URL)
+        response.raise_for_status()
+        tarefas = response.json()  # Retorna a lista de tarefas
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao carregar as tarefas: {e}")
+        flash("Erro ao carregar as tarefas.", "error")
+        tarefas = []
 
     return tarefas

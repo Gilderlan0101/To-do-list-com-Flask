@@ -1,43 +1,49 @@
-import os
-from flask import Blueprint, render_template, request, redirect, flash
-from src.services.to_do_list import my_list, display, path_univesal
+import requests
+from flask import Blueprint, render_template, request, flash, url_for, redirect
+
+# Configuração do Blueprint
 home = Blueprint('home', __name__, template_folder='templates')
 
+# URL base da API
+API_BASE_URL = "http://127.0.0.1:5000/task"
 
 @home.route('/', methods=['POST', 'GET'])
 def page_inicial():
-    viws_task = display()  # Chama a função display() para obter todas as tarefas
+    # Obtendo a lista de tarefas via GET na API
+    try:
+        response = requests.get(API_BASE_URL)
+        response.raise_for_status()
+        viws_task = response.json()  # Lista de tarefas
+    except requests.exceptions.RequestException as e:
+        flash("Erro ao carregar as tarefas.", 'error')
+        viws_task = []
 
+    # Caso o método seja POST, uma nova tarefa será enviada para a API
     if request.method == 'POST':
-        task = request.form.get('task')  # Use get() para evitar KeyError
+        task = request.form.get('task')
         if task:
-            my_list(task)  # Adiciona a tarefa
-            viws_task = display()  # Atualiza a lista de tarefas após adicionar
+            try:
+                # Envia a nova tarefa para a API usando POST
+                response = requests.post(API_BASE_URL, json={'task': task})
+                response.raise_for_status()
+                flash('Tarefa adicionada com sucesso!', 'success')
+            except requests.exceptions.RequestException as e:
+                flash('Erro ao adicionar a tarefa.', 'error')
 
-            if not viws_task:  # Se a lista de tarefas estiver vazia
-                flash('Sua lista está vazia!', 'info')
+            # Redireciona para a página inicial para evitar reenvio do formulário
+            return redirect(url_for('home.page_inicial'))
 
+    # Renderiza a página com a lista atual de tarefas
     return render_template('home.html', viws_task=viws_task)
 
 @home.route('/delete/<int:task_id>', methods=['POST'])
 def delete_task(task_id):
-    caminho_creat_path = path_univesal() 
+    # Deleta a tarefa enviando uma requisição DELETE para a API
     try:
-        tarefas = display()  # Chama a função display para obter a lista de tarefas
-        if 0 <= task_id < len(tarefas):
-            tarefas.pop(task_id)  # Remove a tarefa selecionada
-
-            # Escreve as tarefas atualizadas de volta ao arquivo
-            with open(caminho_creat_path, 'w') as file:
-                for tarefa in tarefas:
-                    file.write(tarefa + '\n')
-
-            flash('Tarefa removida com sucesso!', 'success')
-        else:
-            flash('ID da tarefa inválido.', 'error')
-
-    except Exception as e:
-        print(f"Erro ao deletar tarefa: {e}")
+        response = requests.delete(f"{API_BASE_URL}/{task_id}")
+        response.raise_for_status()
+        flash('Tarefa removida com sucesso!', 'success')
+    except requests.exceptions.RequestException as e:
         flash('Erro ao remover a tarefa.', 'error')
 
-    return redirect('/')  # Redireciona para a página inicial
+    return redirect(url_for('home.page_inicial'))
