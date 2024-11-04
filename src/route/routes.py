@@ -5,7 +5,7 @@ from flask import Blueprint, render_template, request, flash, url_for, redirect
 home = Blueprint('home', __name__, template_folder='templates')
 
 # URL base da API
-API_BASE_URL = "http://127.0.0.1:5000/task"
+API_BASE_URL = "https://api-para-to-do-list.onrender.com/task"
 
 @home.route('/', methods=['POST', 'GET'])
 def page_inicial():
