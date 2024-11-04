@@ -2,7 +2,7 @@ import requests
 from flask import flash
 
 # URL base da API
-API_BASE_URL = "http://127.0.0.1:5000/task"
+API_BASE_URL = "https://api-para-to-do-list.onrender.com/task"
 import requests
 from flask import flash
 
